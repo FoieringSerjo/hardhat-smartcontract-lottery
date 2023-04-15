@@ -4,6 +4,7 @@ pragma solidity ^0.8.7;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol"; // ---> function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal virtual;
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
 
 // Enter the lottery (paying some amount)
 // Pick a random winner (verifiable random)
@@ -12,8 +13,16 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 
 error Raffle__NotEnoughETHEntered();
 error Raffle__TransferFailed();
+error Raffle__NotOpen();
 
-contract Raffle is VRFConsumerBaseV2 {
+contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
+    /* Type declaration */
+    enum RaffleSate {
+        OPEN,
+        CALCULATING
+        // uint256 0 = OPEN, 1 = CALCULATING
+    }
+
     /* State Variables */
     uint256 private immutable i_entranceFee;
     address payable[] private s_players;
@@ -26,6 +35,7 @@ contract Raffle is VRFConsumerBaseV2 {
 
     // Lottary variables
     address private s_recentWinner;
+    RaffleSate private s_raffleState;
 
     /* Events */
     event RaffleEnter(address indexed player);
@@ -44,11 +54,16 @@ contract Raffle is VRFConsumerBaseV2 {
         i_gasLane = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
+        s_raffleState = RaffleSate.OPEN;
     }
 
     function enterRaffle() public payable {
         if (msg.value < i_entranceFee) {
             revert Raffle__NotEnoughETHEntered();
+        }
+
+        if (s_raffleState != RaffleSate.OPEN) {
+            revert Raffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
         // Emit an event when we update a dynamic array ot mapping
@@ -56,12 +71,25 @@ contract Raffle is VRFConsumerBaseV2 {
         emit RaffleEnter(msg.sender);
     }
 
+    /**
+     * Reference: https://docs.chain.link/chainlink-automation/compatible-contracts/
+     * @dev This is the function that Chainlink  Keeper nodes call
+     * they look for the `upkeepNeeded` to return true
+     * the following should be true in order to return true
+     * 1. Our time interval should have passed
+     * 2. The lottery should have at least 1 player, and have some ETH
+     * 3. Our subscription is funded with LINK
+     * 4. The lottery should be in "open" state
+     */
+    function checkUpkeep(bytes calldata /*checkData*/) external override {}
+
     // Chainlink docks for random number contract (RandomWords): https://docs.chain.link/vrf/v2/subscription/examples/get-a-random-number
 
     function requestRandomWinner() external {
         // Request to random number
         // Once we get it, do somthing with it
         // 2 transaction process
+        s_raffleState = RaffleSate.CALCULATING;
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane, // bytes32 keyHash: The gas lane key hash value, which is the maximum gas price you are willing to pay for a request in wei. It functions as an ID of the off-chain VRF job that runs in response to requests.
             i_subscriptionId, // The subscription ID that this contract uses for funding requests.
@@ -80,6 +108,7 @@ contract Raffle is VRFConsumerBaseV2 {
         uint256 indexOfWinner = randomWords[0] % s_players.length; // randomWords at index 0 due to we only have 1 word
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
+        s_raffleState = RaffleSate.OPEN;
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         // required success
         if (!success) {
@@ -92,6 +121,7 @@ contract Raffle is VRFConsumerBaseV2 {
 
     /**
      * This public function returns the entrance fee required to enter in ETH.
+     * @dev
      * @return entrance fee (immutable)
      */
     function getEntranceFee() public view returns (uint256) {
@@ -100,6 +130,7 @@ contract Raffle is VRFConsumerBaseV2 {
 
     /**
      * This function returns the address of the entered player
+     * @dev
      * @param index - index of the entered player
      */
     function getPlayers(uint256 index) public view returns (address) {
