@@ -2,9 +2,53 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/sergeyfoiering/Documents/VSCode/blockchain-hardhat-solidity/hardhat-smartcontract-lottery/contracts/Raffle.sol": {
-      "lastModificationDate": 1681458072571,
-      "contentHash": "79c4fb5c71744ceca4b4448572031788",
+      "lastModificationDate": 1681470896705,
+      "contentHash": "fc440fad741f82a083f079be5aa8b963",
       "sourceName": "contracts/Raffle.sol",
+      "solcConfig": {
+        "version": "0.8.8",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "Raffle"
+      ]
+    },
+    "/Users/sergeyfoiering/Documents/VSCode/blockchain-hardhat-solidity/hardhat-smartcontract-lottery/node_modules/@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol": {
+      "lastModificationDate": 1681470438213,
+      "contentHash": "eb9cc526ef59dfc4d644f56ddca0633a",
+      "sourceName": "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol",
       "solcConfig": {
         "version": "0.8.8",
         "settings": {
@@ -37,10 +81,10 @@
       },
       "imports": [],
       "versionPragmas": [
-        "^0.8.7"
+        "^0.8.4"
       ],
       "artifacts": [
-        "Raffle"
+        "VRFConsumerBaseV2"
       ]
     }
   }
