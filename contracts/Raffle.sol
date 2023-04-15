@@ -11,6 +11,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 // Chainlink Oracle --> Randomness, Automated Execution (Chainlink Keepers)
 
 error Raffle__NotEnoughETHEntered();
+error Raffle__TransferFailed();
 
 contract Raffle is VRFConsumerBaseV2 {
     /* State Variables */
@@ -23,9 +24,13 @@ contract Raffle is VRFConsumerBaseV2 {
     uint32 private immutable i_callbackGasLimit;
     uint32 private constant NUM_WORDS = 1;
 
+    // Lottary variables
+    address private s_recentWinner;
+
     /* Events */
     event RaffleEnter(address indexed player);
     event RequestedRaffleWinner(uint256 indexed requestId);
+    event WinnerPicked(address indexed winner);
 
     constructor(
         address verfCoordinatorV2,
@@ -68,9 +73,20 @@ contract Raffle is VRFConsumerBaseV2 {
     }
 
     function fulfillRandomWords(
-        uint256 requestId,
+        uint256 /* requestId */,
         uint256[] memory randomWords
-    ) internal override {}
+    ) internal override {
+        // https://docs.soliditylang.org/en/v0.8.19/types.html#modulo
+        uint256 indexOfWinner = randomWords[0] % s_players.length; // randomWords at index 0 due to we only have 1 word
+        address payable recentWinner = s_players[indexOfWinner];
+        s_recentWinner = recentWinner;
+        (bool success, ) = recentWinner.call{value: address(this).balance}("");
+        // required success
+        if (!success) {
+            revert Raffle__TransferFailed();
+        }
+        emit WinnerPicked(recentWinner);
+    }
 
     /* View / Pure Functions */
 
@@ -88,5 +104,9 @@ contract Raffle is VRFConsumerBaseV2 {
      */
     function getPlayers(uint256 index) public view returns (address) {
         return s_players[index];
+    }
+
+    function getRecentWinner() public view returns (address) {
+        return s_recentWinner;
     }
 }
