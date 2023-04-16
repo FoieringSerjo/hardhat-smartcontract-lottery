@@ -9,4 +9,12 @@ require('dotenv').config();
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: '0.8.8',
+  namedAccounts: {
+    deployer: {
+      default: 0, //note: here this will by default take the first account as deployer
+    },
+    player: {
+      default: 1,
+    },
+  },
 };
