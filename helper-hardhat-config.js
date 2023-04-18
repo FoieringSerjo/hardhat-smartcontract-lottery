@@ -1,5 +1,4 @@
 const { ethers } = require('hardhat');
-console.log('ethers:', ethers);
 
 const networkConfig = {
   default: {

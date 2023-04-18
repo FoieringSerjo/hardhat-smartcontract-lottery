@@ -4,16 +4,16 @@ pragma solidity ^0.8.7;
 
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol"; // ---> function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal virtual;
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/KeeperCompatibleInterface.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
 
 // Enter the lottery (paying some amount)
 // Pick a random winner (verifiable random)
 // Winner to be selected every X minutes  --> completly automate
 // Chainlink Oracle --> Randomness, Automated Execution (Chainlink Keepers)
 
-error Raffle__NotEnoughETHEntered();
+error Raffle__SendMoreToEnterRaffle();
 error Raffle__TransferFailed();
-error Raffle__NotOpen();
+error Raffle__RaffleNotOpen();
 error Raffle__UpkeepNotNeeded(
     uint256 currentBalance,
     uint256 numPlayers,
@@ -26,7 +26,7 @@ error Raffle__UpkeepNotNeeded(
  * @notice This contract is for creating an untamperable decentralized smart contract
  * @dev This implements the Chainlink VRF Version 2 and Keepers
  */
-contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
+contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     /* Type declaration */
     enum RaffleSate {
         OPEN,
@@ -76,11 +76,11 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
 
     function enterRaffle() public payable {
         if (msg.value < i_entranceFee) {
-            revert Raffle__NotEnoughETHEntered();
+            revert Raffle__SendMoreToEnterRaffle();
         }
 
         if (s_raffleState != RaffleSate.OPEN) {
-            revert Raffle__NotOpen();
+            revert Raffle__RaffleNotOpen();
         }
         s_players.push(payable(msg.sender));
         // Emit an event when we update a dynamic array ot mapping
@@ -183,7 +183,7 @@ contract Raffle is VRFConsumerBaseV2, KeeperCompatibleInterface {
      * @dev
      * @param index - index of the entered player
      */
-    function getPlayers(uint256 index) public view returns (address) {
+    function getPlayer(uint256 index) public view returns (address) {
         return s_players[index];
     }
 

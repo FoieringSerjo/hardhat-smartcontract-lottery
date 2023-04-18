@@ -4,6 +4,11 @@ require('hardhat-deploy');
 require('solidity-coverage');
 require('hardhat-gas-reporter');
 require('hardhat-contract-sizer');
+
+// const tdly = require('@tenderly/hardhat-tenderly');
+// tdly.setup({ automaticVerifications: false });
+// console.log('tdly:', tdly);
+
 require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -53,6 +58,18 @@ module.exports = {
     player: {
       default: 1,
     },
+  },
+  gasReporter: {
+    enabled: false,
+    currency: 'USD',
+    outputFile: 'gas-report.txt',
+    noColors: true,
+    // coinmarketcap: COINMARKETCAP_API_KEY,
+  },
+  tenderly: {
+    username: 'FoieringS',
+    project: 'web3dev',
+    privateVerification: false,
   },
   solidity: {
     compilers: [

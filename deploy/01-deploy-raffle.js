@@ -9,10 +9,10 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   const { deployer } = await getNamedAccounts();
   const chainId = network.config.chainId;
 
-  let vrfCoordinatorV2Address, subscriptionId;
+  let vrfCoordinatorV2Address, subscriptionId, vrfCoordinatorV2Mock;
 
   if (developmentChains.includes(network.name)) {
-    const vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock');
+    vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock');
     vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
 
     const transactionResponse = await vrfCoordinatorV2Mock.createSubscription();
@@ -45,6 +45,12 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     waitConfirmations: 1,
   });
 
+  // Ensure the Raffle contract is a valid consumer of the VRFCoordinatorV2Mock contract.
+  if (developmentChains.includes(network.name)) {
+    const vrfCoordinatorV2Mock = await ethers.getContract('VRFCoordinatorV2Mock');
+    await vrfCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address);
+  }
+
   if (!developmentChains.includes(network.name)) {
     log('Verifying...');
     await verify(raffle.address, args);
@@ -53,4 +59,4 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
   log('--------------------------------------------------------------------');
 };
 
-module.exports.tags = ['All', 'raffle'];
+module.exports.tags = ['all', 'raffle'];
