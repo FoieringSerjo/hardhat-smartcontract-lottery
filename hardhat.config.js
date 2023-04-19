@@ -13,6 +13,7 @@ require('dotenv').config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || '';
+const SEPOLIA_RPC_TENDERLY_URL = process.env.SEPOLIA_RPC_TENDERLY_URL || '';
 const POLYGON_MUMBAI_RPC_URL = process.env.POLYGON_MUMBAI_RPC_URL || '';
 
 const PRIVATE_KEY =
