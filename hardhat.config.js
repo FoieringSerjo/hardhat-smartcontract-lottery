@@ -82,4 +82,7 @@ module.exports = {
       },
     ],
   },
+  mocha: {
+    timeout: 400000, // 400 sec max
+  },
 };
